@@ -62,6 +62,16 @@
     .btn-secondary:hover { color: white; background: var(--primary); }
     .btn-whatsapp { display: inline-flex; align-items: center; gap: 7px; padding: 9px 12px; color: #166534; background: #dcfce7; font-size: 12px; white-space: nowrap; }
     .btn-whatsapp:hover { color: white; background: #16a34a; }
+    .shopping-list { border-color: #bbf7d0; }
+    .shopping-list .panel-heading { align-items: flex-start; }
+    .shopping-list-badge { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; color: #166534; background: #dcfce7; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .shopping-list-items { display: grid; gap: 9px; list-style: none; padding: 0; margin: 0 0 16px; }
+    .shopping-list-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; }
+    .shopping-list-item .item-info { gap: 9px; }
+    .shopping-list-item .item-icon { width: 32px; height: 32px; flex-basis: 32px; color: #166534; background: #dcfce7; font-size: 14px; }
+    .shopping-actions { display: flex; justify-content: flex-end; }
+    .shopping-actions .btn-whatsapp { padding: 11px 15px; font-size: 13px; }
+    .shopping-empty { padding: 18px; color: var(--muted); background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; text-align: center; font-size: 13px; }
 
     .alert { display: none; align-items: flex-start; gap: 12px; margin-bottom: 20px; padding: 15px 17px; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 14px; line-height: 1.45; }
     .alert.visible { display: flex; }
@@ -104,6 +114,9 @@
       li { align-items: flex-start; flex-direction: column; }
       .item-actions { width: 100%; justify-content: space-between; }
       .btn-whatsapp { flex: 1; justify-content: center; }
+      .shopping-list .panel-heading { align-items: flex-start; flex-direction: column; }
+      .shopping-list-badge { align-self: flex-start; }
+      .shopping-list-item { align-items: flex-start; }
     }
   </style>
 </head>
@@ -145,6 +158,15 @@
       <ul id="lista"></ul>
     </section>
 
+    <section class="panel shopping-list">
+      <div class="panel-heading">
+        <div><h2>Lista de compras</h2><p class="section-note">Produtos com apenas 1 unidade disponível.</p></div>
+        <span class="shopping-list-badge" id="contadorCompras">0 itens</span>
+      </div>
+      <div id="listaCompras"></div>
+      <div class="shopping-actions" id="acaoComprarLista"></div>
+    </section>
+
     <section class="panel save-section">
       <div><h2>Salvar alterações</h2><p class="save-description">Protegido por senha para evitar alterações acidentais.</p></div>
       <div class="save-form"><input class="field" id="senha" type="password" placeholder="Senha para salvar"><button type="button" class="btn-secondary" onclick="salvar()">💾 Salvar estoque</button></div>
@@ -168,6 +190,7 @@
       document.getElementById("totalItens").textContent = produtos.reduce((total, produto) => total + (Number(estoque[produto]) || 0), 0);
       document.getElementById("situacao").textContent = produtos.length === 0 ? "Vazio" : produtos.length === 1 ? "Atenção" : "Normal";
       document.getElementById("alertaEstoque").classList.toggle("visible", produtos.length === 1);
+      renderListaCompras();
 
       if (!produtos.length) {
         lista.innerHTML = '<li class="empty"><span class="empty-icon">🗃️</span>Nenhum produto cadastrado ainda.<br>Use o formulário acima para começar.</li>';
@@ -193,7 +216,7 @@
         inputQtd.value = estoque[produto];
         inputQtd.className = "field qtd";
         inputQtd.setAttribute("aria-label", `Quantidade de ${produto}`);
-        inputQtd.oninput = () => { estoque[produto] = Math.max(0, parseInt(inputQtd.value, 10) || 0); mostrarResumo(); };
+        inputQtd.oninput = () => { estoque[produto] = Math.max(0, parseInt(inputQtd.value, 10) || 0); mostrarResumo(); renderListaCompras(); };
 
         const whatsapp = document.createElement("a");
         whatsapp.className = "btn-whatsapp";
@@ -212,6 +235,41 @@
     function mostrarResumo() {
       const produtos = Object.keys(estoque);
       document.getElementById("totalItens").textContent = produtos.reduce((total, produto) => total + (Number(estoque[produto]) || 0), 0);
+    }
+
+    function renderListaCompras() {
+      const listaCompras = document.getElementById("listaCompras");
+      const acaoComprarLista = document.getElementById("acaoComprarLista");
+      const itensParaComprar = Object.keys(estoque).filter((produto) => Number(estoque[produto]) === 1);
+      const quantidade = itensParaComprar.length;
+      document.getElementById("contadorCompras").textContent = `${quantidade} ${quantidade === 1 ? "item" : "itens"}`;
+      listaCompras.innerHTML = "";
+      acaoComprarLista.innerHTML = "";
+
+      if (!quantidade) {
+        listaCompras.innerHTML = '<div class="shopping-empty">Nenhum produto com apenas 1 unidade no momento.</div>';
+        return;
+      }
+
+      const ul = document.createElement("ul");
+      ul.className = "shopping-list-items";
+      itensParaComprar.forEach((produto) => {
+        const item = document.createElement("li");
+        item.className = "shopping-list-item";
+        item.innerHTML = `<div class="item-info"><span class="item-icon">🛒</span><span class="produto">${formatarNome(produto)}</span></div><strong>1 unidade</strong>`;
+        ul.appendChild(item);
+      });
+      listaCompras.appendChild(ul);
+
+      const mensagem = `Comprar lista de compras:\n${itensParaComprar.map((produto) => `- ${formatarNome(produto)}`).join("\n")}`;
+      const comprarLista = document.createElement("a");
+      comprarLista.className = "btn-whatsapp";
+      comprarLista.href = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+      comprarLista.target = "_blank";
+      comprarLista.rel = "noopener noreferrer";
+      comprarLista.innerHTML = "<span>◉</span> Comprar lista completa";
+      comprarLista.setAttribute("aria-label", "Comprar todos os itens da lista pelo WhatsApp");
+      acaoComprarLista.appendChild(comprarLista);
     }
 
     function adicionar() {
