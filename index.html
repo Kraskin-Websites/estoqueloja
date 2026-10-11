@@ -2,180 +2,236 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f766e">
   <title>Controle de Estoque</title>
   <style>
+    :root {
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --primary-soft: #ccfbf1;
+      --accent: #f59e0b;
+      --danger: #dc2626;
+      --ink: #172033;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --surface: #ffffff;
+      --background: #f1f5f9;
+      --shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f6f9;
       margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
       min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at top right, #ccfbf1 0, transparent 30%), var(--background);
     }
 
-    .container {
-      background: #fff;
-      margin-top: 40px;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 500px;
+    .container { width: min(100% - 32px, 980px); margin: 0 auto; padding: 42px 0 56px; }
+
+    .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .eyebrow { margin: 0 0 8px; color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { margin: 0; color: var(--ink); font-size: clamp(28px, 5vw, 42px); line-height: 1.08; letter-spacing: -.04em; }
+    .subtitle { max-width: 540px; margin: 12px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+    .brand-mark { display: grid; flex: 0 0 58px; place-items: center; width: 58px; height: 58px; color: white; background: linear-gradient(135deg, var(--primary), #14b8a6); border-radius: 18px; box-shadow: 0 12px 24px rgba(15, 118, 110, .22); font-size: 27px; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+    .stat, .panel { background: rgba(255,255,255,.9); border: 1px solid rgba(226,232,240,.9); border-radius: 18px; box-shadow: var(--shadow); }
+    .stat { padding: 18px 20px; }
+    .stat-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    .stat-value { color: var(--ink); font-size: 27px; font-weight: 800; }
+
+    .panel { padding: clamp(20px, 4vw, 30px); }
+    .panel + .panel { margin-top: 20px; }
+    .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+    h2 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
+    .section-note { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+
+    .form { display: grid; grid-template-columns: 1fr 150px auto; gap: 12px; }
+    .field { width: 100%; padding: 13px 14px; color: var(--ink); background: #f8fafc; border: 1px solid var(--line); border-radius: 11px; outline: none; font: inherit; transition: border-color .2s, box-shadow .2s, background .2s; }
+    .field:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(20,184,166,.13); }
+    .field::placeholder { color: #94a3b8; }
+
+    button { border: 0; border-radius: 11px; padding: 12px 17px; color: white; background: var(--primary); font: inherit; font-size: 14px; font-weight: 750; cursor: pointer; transition: transform .2s, background .2s, box-shadow .2s; }
+    button:hover { background: var(--primary-dark); box-shadow: 0 8px 18px rgba(15,118,110,.2); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    .btn-secondary { color: var(--primary-dark); background: var(--primary-soft); }
+    .btn-secondary:hover { color: white; background: var(--primary); }
+    .btn-whatsapp { display: inline-flex; align-items: center; gap: 7px; padding: 9px 12px; color: #166534; background: #dcfce7; font-size: 12px; white-space: nowrap; }
+    .btn-whatsapp:hover { color: white; background: #16a34a; }
+
+    .alert { display: none; align-items: flex-start; gap: 12px; margin-bottom: 20px; padding: 15px 17px; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 14px; line-height: 1.45; }
+    .alert.visible { display: flex; }
+    .alert strong { display: block; margin-bottom: 2px; color: #78350f; }
+    .alert-icon { font-size: 20px; }
+
+    ul { display: grid; gap: 10px; list-style: none; padding: 0; margin: 0; }
+    li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 16px; background: #f8fafc; border: 1px solid var(--line); border-radius: 14px; transition: border-color .2s, transform .2s, background .2s; }
+    li:hover { background: #fff; border-color: #99f6e4; transform: translateX(2px); }
+    .item-info { min-width: 0; display: flex; align-items: center; gap: 12px; }
+    .item-icon { display: grid; flex: 0 0 38px; place-items: center; width: 38px; height: 38px; color: var(--primary-dark); background: var(--primary-soft); border-radius: 11px; }
+    .produto { overflow: hidden; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+    .item-actions { display: flex; align-items: center; gap: 10px; }
+    .qtd { width: 74px; padding: 9px 8px; text-align: center; }
+    .empty { padding: 32px 16px; color: var(--muted); text-align: center; border: 1px dashed #cbd5e1; border-radius: 14px; }
+    .empty-icon { display: block; margin-bottom: 8px; font-size: 30px; }
+
+    .save-section { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .save-form { display: flex; flex: 1; gap: 10px; }
+    .save-form .field { max-width: 280px; }
+    .save-description { color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 700px) {
+      .container { width: min(100% - 22px, 620px); padding-top: 26px; }
+      .header { margin-bottom: 22px; }
+      .brand-mark { flex-basis: 48px; width: 48px; height: 48px; border-radius: 14px; font-size: 22px; }
+      .stats { gap: 8px; }
+      .stat { padding: 14px 12px; }
+      .stat-value { font-size: 22px; }
+      .form { grid-template-columns: 1fr 1fr; }
+      .form button { grid-column: 1 / -1; }
+      .save-section { align-items: stretch; flex-direction: column; }
+      .save-form { flex-direction: column; }
+      .save-form .field { max-width: none; }
     }
 
-    h1 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 20px;
-    }
-
-    h2 {
-      margin-top: 30px;
-      margin-bottom: 15px;
-      color: #444;
-      font-size: 18px;
-      border-bottom: 2px solid #eee;
-      padding-bottom: 5px;
-    }
-
-    .form {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
-    input {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      outline: none;
-      font-size: 14px;
-      transition: 0.2s;
-    }
-
-    input:focus {
-      border-color: #4a90e2;
-      box-shadow: 0 0 4px rgba(74,144,226,0.4);
-    }
-
-    button {
-      padding: 10px 16px;
-      background: #4a90e2;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: 0.2s;
-    }
-
-    button:hover {
-      background: #357ab8;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 15px;
-      margin-bottom: 8px;
-      background: #f9fafc;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      transition: 0.2s;
-    }
-
-    li:hover {
-      background: #f1f5fb;
-    }
-
-    .produto {
-      font-weight: 500;
-      color: #333;
-    }
-
-    .qtd {
-      width: 70px;
-      text-align: center;
-    }
-
-    .save-section {
-      margin-top: 25px;
-      text-align: center;
-    }
-
-    .save-section input {
-      width: 200px;
-      margin-right: 10px;
+    @media (max-width: 460px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat:last-child { grid-column: 1 / -1; }
+      li { align-items: flex-start; flex-direction: column; }
+      .item-actions { width: 100%; justify-content: space-between; }
+      .btn-whatsapp { flex: 1; justify-content: center; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📦 Controle de Estoque</h1>
-    
-    <div class="form">
-      <input id="produto" placeholder="Produto">
-      <input id="quantidade" type="number" placeholder="Qtd">
-      <button onclick="adicionar()">Adicionar</button>
+  <main class="container">
+    <header class="header">
+      <div>
+        <p class="eyebrow">Gestão simples e eficiente</p>
+        <h1>Controle de Estoque</h1>
+        <p class="subtitle">Acompanhe seus produtos, mantenha as quantidades atualizadas e envie pedidos de compra pelo WhatsApp em poucos cliques.</p>
+      </div>
+      <div class="brand-mark" aria-hidden="true">📦</div>
+    </header>
+
+    <section class="stats" aria-label="Resumo do estoque">
+      <div class="stat"><span class="stat-label">Produtos cadastrados</span><span class="stat-value" id="totalProdutos">0</span></div>
+      <div class="stat"><span class="stat-label">Itens em estoque</span><span class="stat-value" id="totalItens">0</span></div>
+      <div class="stat"><span class="stat-label">Situação</span><span class="stat-value" id="situacao">Vazio</span></div>
+    </section>
+
+    <div id="alertaEstoque" class="alert" role="alert">
+      <span class="alert-icon">⚠️</span>
+      <div><strong>Estoque com apenas um item</strong>Considere providenciar uma nova compra para evitar que o produto falte.</div>
     </div>
 
-    <h2>Estoque Atual</h2>
-    <ul id="lista"></ul>
+    <section class="panel">
+      <div class="panel-heading">
+        <div><h2>Adicionar produto</h2><p class="section-note">Cadastre um produto e informe a quantidade disponível.</p></div>
+      </div>
+      <div class="form">
+        <input class="field" id="produto" placeholder="Nome do produto" autocomplete="off">
+        <input class="field" id="quantidade" type="number" min="0" placeholder="Quantidade" inputmode="numeric">
+        <button type="button" onclick="adicionar()">+ Adicionar produto</button>
+      </div>
+    </section>
 
-    <div class="save-section">
-      <input id="senha" type="password" placeholder="Senha para salvar">
-      <button onclick="salvar()">💾 Salvar Estoque</button>
-    </div>
-  </div>
+    <section class="panel">
+      <div class="panel-heading"><div><h2>Estoque atual</h2><p class="section-note">Atualize a quantidade ou envie uma solicitação de compra.</p></div></div>
+      <ul id="lista"></ul>
+    </section>
+
+    <section class="panel save-section">
+      <div><h2>Salvar alterações</h2><p class="save-description">Protegido por senha para evitar alterações acidentais.</p></div>
+      <div class="save-form"><input class="field" id="senha" type="password" placeholder="Senha para salvar"><button type="button" class="btn-secondary" onclick="salvar()">💾 Salvar estoque</button></div>
+    </section>
+  </main>
 
   <script>
-    const SENHA = "1234"; // senha fixa
+    const SENHA = "1234";
     let estoque = JSON.parse(localStorage.getItem("estoque")) || {};
+
+    function formatarNome(nome) {
+      return nome.charAt(0).toUpperCase() + nome.slice(1);
+    }
 
     function mostrar() {
       const lista = document.getElementById("lista");
+      const produtos = Object.keys(estoque);
       lista.innerHTML = "";
-      for (let produto in estoque) {
+
+      document.getElementById("totalProdutos").textContent = produtos.length;
+      document.getElementById("totalItens").textContent = produtos.reduce((total, produto) => total + (Number(estoque[produto]) || 0), 0);
+      document.getElementById("situacao").textContent = produtos.length === 0 ? "Vazio" : produtos.length === 1 ? "Atenção" : "Normal";
+      document.getElementById("alertaEstoque").classList.toggle("visible", produtos.length === 1);
+
+      if (!produtos.length) {
+        lista.innerHTML = '<li class="empty"><span class="empty-icon">🗃️</span>Nenhum produto cadastrado ainda.<br>Use o formulário acima para começar.</li>';
+        return;
+      }
+
+      produtos.forEach((produto) => {
         const li = document.createElement("li");
+        const info = document.createElement("div");
+        info.className = "item-info";
+        info.innerHTML = '<span class="item-icon">📦</span>';
+        const nome = document.createElement("span");
+        nome.className = "produto";
+        nome.title = produto;
+        nome.textContent = formatarNome(produto);
+        info.appendChild(nome);
 
-        const span = document.createElement("span");
-        span.textContent = produto;
-        span.classList.add("produto");
-
+        const actions = document.createElement("div");
+        actions.className = "item-actions";
         const inputQtd = document.createElement("input");
         inputQtd.type = "number";
+        inputQtd.min = "0";
         inputQtd.value = estoque[produto];
-        inputQtd.classList.add("qtd");
-        inputQtd.oninput = () => estoque[produto] = parseInt(inputQtd.value);
+        inputQtd.className = "field qtd";
+        inputQtd.setAttribute("aria-label", `Quantidade de ${produto}`);
+        inputQtd.oninput = () => { estoque[produto] = Math.max(0, parseInt(inputQtd.value, 10) || 0); mostrarResumo(); };
 
-        li.appendChild(span);
-        li.appendChild(inputQtd);
+        const whatsapp = document.createElement("a");
+        whatsapp.className = "btn-whatsapp";
+        whatsapp.href = `https://wa.me/?text=${encodeURIComponent(`Comprar ${formatarNome(produto)}`)}`;
+        whatsapp.target = "_blank";
+        whatsapp.rel = "noopener noreferrer";
+        whatsapp.innerHTML = "<span>◉</span> Comprar item";
+        whatsapp.setAttribute("aria-label", `Comprar ${produto} pelo WhatsApp`);
+
+        actions.append(inputQtd, whatsapp);
+        li.append(info, actions);
         lista.appendChild(li);
-      }
+      });
+    }
+
+    function mostrarResumo() {
+      const produtos = Object.keys(estoque);
+      document.getElementById("totalItens").textContent = produtos.reduce((total, produto) => total + (Number(estoque[produto]) || 0), 0);
     }
 
     function adicionar() {
-      const produto = document.getElementById("produto").value.trim();
-      const quantidade = parseInt(document.getElementById("quantidade").value);
-      if (produto && !isNaN(quantidade)) {
-        estoque[produto] = quantidade;
-        document.getElementById("produto").value = "";
-        document.getElementById("quantidade").value = "";
-        mostrar();
+      const produtoInput = document.getElementById("produto");
+      const quantidadeInput = document.getElementById("quantidade");
+      const produto = produtoInput.value.trim().toLowerCase();
+      const quantidade = parseInt(quantidadeInput.value, 10);
+      if (!produto || Number.isNaN(quantidade) || quantidade < 0) {
+        alert("Informe um produto e uma quantidade válida.");
+        return;
       }
+      estoque[produto] = quantidade;
+      produtoInput.value = "";
+      quantidadeInput.value = "";
+      mostrar();
+      produtoInput.focus();
     }
 
     function salvar() {
-      const senha = document.getElementById("senha").value;
-      if (senha !== SENHA) {
+      if (document.getElementById("senha").value !== SENHA) {
         alert("❌ Senha incorreta!");
         return;
       }
@@ -184,6 +240,8 @@
       document.getElementById("senha").value = "";
     }
 
+    document.getElementById("quantidade").addEventListener("keydown", (event) => { if (event.key === "Enter") adicionar(); });
+    document.getElementById("produto").addEventListener("keydown", (event) => { if (event.key === "Enter") adicionar(); });
     mostrar();
   </script>
 </body>
